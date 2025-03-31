@@ -1,88 +1,81 @@
 import React, { useState } from "react";
-import { TextField, Button, Container, Typography } from "@mui/material";
-import { useFormik } from "formik";
+import { TextField, Button, Container, Paper, Typography, Grid } from "@mui/material";
+import { useApi } from "../services/api";
 import * as Yup from "yup";
-import axios from "axios";
-import { useAuth } from "../context/AuthContext"; // Importe o contexto de autenticação
+import { useNavigate } from "react-router-dom";
+
+const validationSchema = Yup.object({
+  nome: Yup.string().required("Nome é obrigatório"),
+  setor: Yup.string().required("Setor é obrigatório"),
+  dataFabricacao: Yup.date().required("Data de fabricação é obrigatória"),
+});
 
 const EquipamentosCadastro = () => {
-    const { token } = useAuth(); // Pegue o token do AuthContext
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+  const [nome, setNome] = useState("");
+  const [setor, setSetor] = useState("");
+  const [dataFabricacao, setDataFabricacao] = useState("");
+  const api = useApi();
+  const navigate = useNavigate();
 
-    const formik = useFormik({
-        initialValues: {
-            nome: "",
-            setor: "",
-            dataDeFabricacao: ""
-        },
-        validationSchema: Yup.object({
-            nome: Yup.string().required("Nome é obrigatório").max(100, "Máximo de 100 caracteres"),
-            setor: Yup.string().required("Setor é obrigatório").max(50, "Máximo de 50 caracteres"),
-            dataDeFabricacao: Yup.date().required("Data de fabricação é obrigatória")
-        }),
-        onSubmit: async (values) => {
-            setLoading(true);
-            setError(null);
-            try {
-                const response = await axios.post("http://localhost:8080/api/equipamentos", values, {
-                    headers: { Authorization: {token} } // Use o token do contexto
-                });
-                alert("Equipamento cadastrado com sucesso!");
-                formik.resetForm();
-            } catch (err) {
-                setError("Erro ao cadastrar equipamento");
-            } finally {
-                setLoading(false);
-            }
-        }
-    });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    return (
-        <Container maxWidth="sm">
-            <Typography variant="h4" gutterBottom>
-                Cadastro de Equipamento
-            </Typography>
-            <form onSubmit={formik.handleSubmit}>
-                <TextField
-                    fullWidth
-                    margin="normal"
-                    label="Nome"
-                    name="nome"
-                    value={formik.values.nome}
-                    onChange={formik.handleChange}
-                    error={formik.touched.nome && Boolean(formik.errors.nome)}
-                    helperText={formik.touched.nome && formik.errors.nome}
-                />
-                <TextField
-                    fullWidth
-                    margin="normal"
-                    label="Setor"
-                    name="setor"
-                    value={formik.values.setor}
-                    onChange={formik.handleChange}
-                    error={formik.touched.setor && Boolean(formik.errors.setor)}
-                    helperText={formik.touched.setor && formik.errors.setor}
-                />
-                <TextField
-                    fullWidth
-                    margin="normal"
-                    label="Data de Fabricação"
-                    type="date"
-                    name="dataDeFabricacao"
-                    InputLabelProps={{ shrink: true }}
-                    value={formik.values.dataDeFabricacao}
-                    onChange={formik.handleChange}
-                    error={formik.touched.dataDeFabricacao && Boolean(formik.errors.dataDeFabricacao)}
-                    helperText={formik.touched.dataDeFabricacao && formik.errors.dataDeFabricacao}
-                />
-                <Button color="primary" variant="contained" fullWidth type="submit" disabled={loading}>
-                    {loading ? "Salvando..." : "Cadastrar"}
-                </Button>
-                {error && <Typography color="error" mt={2}>{error}</Typography>}
-            </form>
-        </Container>
-    );
+    try {
+      await validationSchema.validate({ nome, setor, dataFabricacao });
+      await api.post("/equipamentos", { nome, setor, dataFabricacao });
+      navigate("/relatorio"); // Redireciona para a tela de relatório
+    } catch (error) {
+      console.error("Erro ao cadastrar equipamento", error);
+    }
+  };
+
+  return (
+    <Container maxWidth="sm">
+      <Paper elevation={3} style={{ padding: "20px", marginTop: "20px" }}>
+        <Typography variant="h5" align="center" gutterBottom>
+          Cadastro de Equipamento
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                label="Nome"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Setor"
+                value={setor}
+                onChange={(e) => setSetor(e.target.value)}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Data de Fabricação"
+                type="date"
+                value={dataFabricacao}
+                onChange={(e) => setDataFabricacao(e.target.value)}
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Button type="submit" variant="contained" color="primary" fullWidth>
+                Cadastrar
+              </Button>
+            </Grid>
+          </Grid>
+        </form>
+      </Paper>
+    </Container>
+  );
 };
 
 export default EquipamentosCadastro;
