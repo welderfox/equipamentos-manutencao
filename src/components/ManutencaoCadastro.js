@@ -21,7 +21,7 @@ const ManutencaoCadastro = () => {
     api.get("/equipamentos").then((response) => {
       setEquipamentos(response.data);
     });
-  }, [api]);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

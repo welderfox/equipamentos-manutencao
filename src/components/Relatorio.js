@@ -8,9 +8,10 @@ const Relatorio = () => {
 
   useEffect(() => {
     api.get("/relatorio").then((response) => {
+        console.log("RELATORIO TESTE"); // Log para verificar a resposta da API
       setRelatorio(response.data);
     });
-  }, [api]);
+  }, []);
 
   return (
     <TableContainer component={Paper}>
