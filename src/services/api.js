@@ -5,14 +5,12 @@ export const useApi = () => {
   const { token } = useAuth();
   
   const api = axios.create({
-    baseURL: 'http://localhost:8080', // URL da sua API
+    baseURL: 'http://localhost:8081/api',
     headers: {
       'Authorization': `${token}`,
-      'Content-Type': 'application/json',
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "Authorization", 
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+      'Content-Type': 'application/json'
     },
+    withCredentials: true, // Importante para suportar cookies/sessões
   });
 
   return api;
